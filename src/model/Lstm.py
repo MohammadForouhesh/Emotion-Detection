@@ -1,5 +1,6 @@
+from src.params import device
+from torch import nn
 import torch.nn
-from main import device
 
 
 class LSTM(nn.Module):

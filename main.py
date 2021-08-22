@@ -1,34 +1,24 @@
-import os
-import pandas as pd
-import numpy as np
-import torch
-from torch import nn
-from torch.utils.data import DataLoader
-from torch.utils.data import TensorDataset
+from src.preprocessing.Preprocessing import correction, preprocess
 from sentence_transformers import SentenceTransformer
-from sklearn.model_selection import train_test_split
+from torch.utils.data import TensorDataset
 from torch.utils.data import DataLoader
-import pandas as pd
-
-import gc
-import logging
-import argparse
-import warnings
 from src.metrics import ir_metrics
 from src.model import LSTM, CNN
-from src.preprocessing.Preprocessing import correction, preprocess
-from src.utils.Run import run
+from src.running.Run import run
+from src.params import device
+from termcolor import colored
+from datetime import datetime
+from torch import nn
+import pandas as pd
+import argparse
+import warnings
+import logging
+import torch
+import gc
 
 gc.enable()
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=SyntaxWarning)
 
-N_EPOCH = 300
-
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print('Using {} device'.format(device))
-
-file = open('persian', 'r')
-sw_persian = list(file.read().splitlines())
 
 emb_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
@@ -77,8 +67,10 @@ def main():
     target = torch.cuda.LongTensor(train_df.category_id)
     
     train_ds = TensorDataset(inputs, target)
-    
-    if args.model_name is 'lstm':
+
+    print(colored('[' + str(datetime.now().hour) + ':' + str(datetime.now().minute) + ']', 'cyan'),
+          colored('\n====================TRAIN='+args.model_name+'=====================', 'red'))
+    if args.model_name == 'lstm':
         bach_size = 5
         train_dl = DataLoader(train_ds, bach_size, shuffle=True)
         
@@ -90,9 +82,9 @@ def main():
         trained_lstm = run(model=lstm_model, iterator=train_dl, optimizer=optimizer,
                            loss_function=loss_function, n_epoch=args.epoch, if_lstm=True)
         
-        ir_metrics(model=lstm_model)
+        ir_metrics(model=trained_lstm)
     
-    elif args.model_name is 'cnn':
+    elif args.model_name == 'cnn':
         bach_size = 1
         train_dl = DataLoader(train_ds, bach_size, shuffle=True)
         
@@ -104,4 +96,15 @@ def main():
         trained_cnn = run(model=cnn_model, iterator=train_dl, optimizer=optimizer,
                           loss_function=loss_function)
 
-        ir_metrics(model=cnn_model)
+        ir_metrics(model=trained_cnn)
+        
+        
+if __name__ == '__main__':
+    with warnings.catch_warnings():
+        logging.basicConfig(filename='exa_model.log', format='%(asctime)s : %(levelname)s : %(message)s',
+                            level=logging.INFO)
+        warnings.filterwarnings("ignore")
+        print(colored('[' + str(datetime.now().hour) + ':' + str(datetime.now().minute) + ']', 'cyan'),
+              colored('\n===============EXA=EmotionDetection===============', 'red'))
+        main()
+        print(colored('[' + str(datetime.now().hour) + ':' + str(datetime.now().minute) + ']', 'cyan'))

@@ -1,7 +1,11 @@
+from src.params import sw_persian
+import pandas as pd
 import re
 
 
-def correction(series):
+def correction(series:pd.Series):
+    assert isinstance(series, pd.Series)
+    
     for line in series:
         line = line.replace('\n', '').replace('.', '')
         line = line.split(' ')
@@ -9,7 +13,9 @@ def correction(series):
         yield list(map(int, line))
 
 
-def remove_emoji(text: str) -> str:
+def remove_emoji(text:str) -> str:
+    assert isinstance(text, str)
+    
     emoji_pattern = re.compile(pattern="["
                                        u"\U0001F600-\U0001F64F"  # emoticons
                                        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -29,7 +35,9 @@ def remove_emoji(text: str) -> str:
     return str(emoji_pattern.sub(r'', text))
 
 
-def remove_redundent_characters(text: str) -> str:
+def remove_redundent_characters(text:str) -> str:
+    assert isinstance(text, str)
+    
     text = re.sub(r'@[A-Za-z0-9]+', ' ', text)  # Removed @mentions
     text = re.sub(r'_[A-Za-z0-9]+', ' ', text)  # Removed underlines
     text = re.sub(r'/(\r\n)+|\r+|\n+|\t+/', ' ', text)  # Removed \n
@@ -54,7 +62,9 @@ def remove_redundent_characters(text: str) -> str:
     return text
 
 
-def remove_stop_words(text: str) -> str:
+def remove_stop_words(text:str) -> str:
+    assert isinstance(text, str)
+    
     return ' '.join([word for word in text.split(' ') if word not in sw_persian])
 
 

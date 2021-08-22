@@ -1,5 +1,5 @@
 from src.metrics.Metrics import categorical_acc
-from main import device
+from src.params import device
 import torch
 
 

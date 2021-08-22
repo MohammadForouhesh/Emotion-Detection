@@ -1,14 +1,13 @@
 import torch.nn.functional as F
 import torch
 import torch.nn
-from main import bach_size
-
+from torch import nn
 
 trick_f = lambda tensor: tensor.permute(1, 0)\
                                .unsqueeze(-1)\
-                               .expand(384, bach_size, 4)\
+                               .expand(384, 1, 4)\
                                .unsqueeze(-1)\
-                               .expand(384, bach_size, 4, 100)
+                               .expand(384, 1, 4, 100)
 
 
 class CNN(nn.Module):
@@ -16,10 +15,10 @@ class CNN(nn.Module):
                  filter_sizes=[2, 3, 4], output_dim=42, drop_out=0.5, pad_idx=2):
         super().__init__()
         self.convs = nn.ModuleList([
-                    nn.Conv2d(in_channels=bach_size,
-                              out_channels=n_filters,
-                              kernel_size=(fs, embedding_dim))
-                    for fs in filter_sizes])
+                     nn.Conv2d(in_channels=1,
+                               out_channels=n_filters,
+                               kernel_size=(fs, embedding_dim))
+                     for fs in filter_sizes])
         self.fc = nn.Linear(len(filter_sizes) * n_filters, output_dim)
         self.linear = nn.Linear(output_dim, 1)
         self.dropout = nn.Dropout(drop_out)
