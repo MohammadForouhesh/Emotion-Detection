@@ -1,13 +1,15 @@
 import torch.nn.functional as F
 import torch
 import torch.nn
+from main import bach_size
 
-train_iterator = train_dl
+
 trick_f = lambda tensor: tensor.permute(1, 0)\
                                .unsqueeze(-1)\
                                .expand(384, bach_size, 4)\
                                .unsqueeze(-1)\
                                .expand(384, bach_size, 4, 100)
+
 
 class CNN(nn.Module):
     def __init__(self, input_size=384, embedding_dim=100, n_filters=384,
