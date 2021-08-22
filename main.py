@@ -36,8 +36,6 @@ def preparation(args) -> (pd.DataFrame, pd.DataFrame):
     df.label = list(correction(df.label))
     df['preprocessed'] = df.text.apply(preprocess)
     
-    train_df = df[:5999]
-    test_df = df[5999:]
     return df[:5999], df[5999:], category_to_id
 
 
