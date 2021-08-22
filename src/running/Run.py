@@ -22,7 +22,7 @@ def run(model, iterator, optimizer, loss_function, n_epoch=N_EPOCH, if_lstm=Fals
         
         if valid_loss < best_validation_loss:
             best_validation_loss = valid_loss
-            torch.save(model.state_dict(), 'exa_emotion_classification.pt')
+            torch.save(model.state_dict(), 'models/exa_emotion_classification.pt')
         
         print(f'Epoch {epoch + 1}, Time: {epoch_mins} mins: {epoch_secs} secs')
         print(f'\t Train Loss {train_loss:.3f}, Train Acc {train_acc * 100:.3f}')
