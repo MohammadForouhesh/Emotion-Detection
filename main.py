@@ -55,46 +55,57 @@ def main():
                         help="address to test dataset.")
     
     args = parser.parse_args()
-    
+
     train_df, test_df, category_to_id = preparation(args)
-    
+
     sentences = list(train_df.preprocessed)
     sentence_embeddings = emb_model.encode(sentences)
-    
+
     inputs = torch.from_numpy(sentence_embeddings).to(device)
     target = torch.cuda.LongTensor(train_df.category_id)
-    
+
     train_ds = TensorDataset(inputs, target)
 
-    print(colored('[' + str(datetime.now().hour) + ':' + str(datetime.now().minute) + ']', 'cyan'),
-          colored('\n====================TRAIN='+args.model_name+'=====================', 'red'))
-    if args.model_name == 'lstm':
-        bach_size = 5
-        train_dl = DataLoader(train_ds, bach_size, shuffle=True)
-        
-        lstm_model = LSTM(output_size=len(category_to_id)).to(device)
-        loss_function = nn.CrossEntropyLoss()
-        loss_function = loss_function.to(device)
-        optimizer = torch.optim.AdamW(lstm_model.parameters(), amsgrad=True)
-        
-        trained_lstm = run(model=lstm_model, iterator=train_dl, optimizer=optimizer,
-                           loss_function=loss_function, n_epoch=args.epoch, if_lstm=True)
-        
-        ir_metrics(model=trained_lstm)
-    
-    elif args.model_name == 'cnn':
-        bach_size = 1
-        train_dl = DataLoader(train_ds, bach_size, shuffle=True)
-        
-        cnn_model = CNN(output_dim=len(category_to_id)).to(device)
-        loss_function = nn.CrossEntropyLoss()
-        loss_function = loss_function.to(device)
-        optimizer = torch.optim.AdamW(cnn_model.parameters(), amsgrad=True)
-        
-        trained_cnn = run(model=cnn_model, iterator=train_dl, optimizer=optimizer,
-                          loss_function=loss_function)
+    sentences = list(test_df.preprocessed)
+    sentence_embeddings = emb_model.encode(sentences)
 
-        ir_metrics(model=trained_cnn)
+    inputs = torch.from_numpy(sentence_embeddings).to(device)
+    target = torch.cuda.LongTensor(test_df.category_id)
+
+    test_ds = TensorDataset(inputs, target)
+
+    bach_size = 5 if args.model_name == 'lstm' else 1
+
+    train_dl = DataLoader(train_ds, bach_size, shuffle=True)
+    test_dl = DataLoader(test_ds, bach_size, shuffle=True)
+
+    loss_function = nn.CrossEntropyLoss()
+    loss_function = loss_function.to(device)
+
+    print(colored('[' + str(datetime.now().hour) + ':' + str(datetime.now().minute) + ']', 'cyan'),
+          colored('\n====================TRAIN=' + args.model_name + '=====================', 'red'))
+    if args.model_name == 'lstm':
+        model = LSTM(output_size=len(category_to_id)).to(device)
+    
+        optimizer = torch.optim.AdamW(model.parameters(), amsgrad=True)
+    
+        trained_model = run(model=model, iterator=train_dl, optimizer=optimizer,
+                            loss_function=loss_function, n_epoch=epoch, if_lstm=True)
+
+    elif args.model_name == 'cnn':
+    
+        model = CNN(output_dim=len(category_to_id)).to(device)
+        optimizer = torch.optim.AdamW(model.parameters(), amsgrad=True)
+    
+        trained_model = run(model=model, iterator=train_dl, optimizer=optimizer,
+                            loss_function=loss_function)
+
+    ir_metrics(model=trained_model, iterator=train_dl)
+
+    print(colored('[' + str(datetime.now().hour) + ':' + str(datetime.now().minute) + ']', 'cyan'),
+          colored('\n====================Test==' + args.model_name + '=====================', 'red'))
+
+    ir_metrics(model=trained_model, iterator=test_dl)
         
         
 if __name__ == '__main__':
